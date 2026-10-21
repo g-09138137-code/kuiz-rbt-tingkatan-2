@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kuiz RBT Tingkatan 2</title>
+<style>
+:root{--blue:#1746a2;--light:#eef4ff;--green:#137547;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6fb;color:#182230;font:16px/1.55 Arial,sans-serif}
+header{background:linear-gradient(135deg,#1746a2,#3979dc);color:white;padding:28px 16px}
+header,main{padding-left:max(16px,calc((100% - 850px)/2));padding-right:max(16px,calc((100% - 850px)/2))}
+h1{font-size:clamp(24px,5vw,36px);margin:0 0 6px}
+header p{margin:0}
+main{padding-top:18px;padding-bottom:40px}
+.panel,.question{background:white;border:1px solid #e0e7f0;border-radius:15px;padding:18px;margin-bottom:15px;box-shadow:0 3px 12px #18223008}
+.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.pill{background:var(--light);color:var(--blue);padding:5px 10px;border-radius:30px;font-weight:bold}
+.progress{height:9px;background:#e7edf5;border-radius:20px;overflow:hidden;margin-top:14px}
+.bar{height:100%;width:0;background:#3478e5;transition:width .2s}
+.qnum{color:var(--blue);font-weight:bold;font-size:14px}
+h2{font-size:20px;margin:7px 0 14px}
+.option{display:block;border:1px solid #d8e0ec;border-radius:10px;padding:11px 12px;margin:9px 0;cursor:pointer}
+.option:hover{background:#f4f7ff}
+.option input{margin-right:9px}
+.option.correct{border-color:#5cba87;background:#eaf8f0}
+.option.wrong{border-color:#e58a84;background:#fff0ef}
+.feedback{padding:10px;border-radius:9px;margin-top:10px;background:#f3f6fb}
+.feedback.good{color:var(--green);background:#eaf8f0}
+.feedback.bad{color:var(--red);background:#fff0ef}
+button{border:0;border-radius:9px;padding:11px 15px;font-size:15px;font-weight:bold;cursor:pointer;margin:4px 4px 4px 0}
+.primary{background:var(--blue);color:white}
+.secondary{background:#e8edf5;color:#24334a}
+.result{display:none;text-align:center}
+.score{font-size:42px;font-weight:bold;color:var(--blue)}
+.reviewitem{text-align:left;border-top:1px solid #e1e6ef;padding:12px 0}
+small,.muted{color:#637083}
+footer{text-align:center;color:#637083;font-size:13px;padding:20px}
+@media(max-width:520px){.panel,.question{padding:14px}button{max-width:100%}}
+</style>
+</head>
+<body>
+<header>
+<h1>Kuiz Ulang Kaji RBT Tingkatan 2</h1>
+<p>30 soalan • Latihan kendiri • Semak jawapan serta-merta</p>
+</header>
+<main>
+<section class="panel">
+<div class="row">
+<strong>Jom uji pengetahuan RBT!</strong>
+<span class="pill" id="score">Skor: 0/30</span>
+</div>
+<p>Pilih satu jawapan bagi setiap soalan. Jawab semua soalan dan semak keputusan anda di akhir kuiz.</p>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="row muted"><span id="progressText">0 daripada 30 dijawab</span><span id="percent">0%</span></div>
+</section>
+<div id="quiz"></div>
+<section class="panel">
+<button class="primary" onclick="showResult()">Lihat keputusan</button>
+<button class="secondary" onclick="resetQuiz(false)">Cuba semula</button>
+<button class="secondary" onclick="resetQuiz(true)">Soalan rawak</button>
+</section>
+<section class="panel result" id="result">
+<h2>Keputusan Kuiz</h2>
+<div class="score" id="finalScore">0/30</div>
+<p id="message"></p>
+<button class="primary" onclick="resetQuiz(false)">Cuba semula</button>
+<button class="secondary" onclick="resetQuiz(true)">Cuba dengan soalan rawak</button>
+<div id="review"></div>
+</section>
+</main>
+<footer>Kuiz latihan RBT Tingkatan 2 • Bahan ulang kaji pendidikan</footer>
+<script>
+const questions = [
+{q:"Apakah maksud penyelesaian masalah secara inventif?",o:["Menghasilkan masalah baharu","Menyelesaikan masalah melalui kaedah kreatif dan sistematik","Meniru semua produk sedia ada","Mengelakkan penggunaan teknologi"],a:1,e:"Penyelesaian masalah secara inventif menggunakan pendekatan sistematik untuk menyelesaikan masalah."},
+{q:"Apakah tujuan mengenal pasti percanggahan dalam sesuatu masalah reka bentuk?",o:["Menentukan warna produk sahaja","Menghapuskan semua kos","Memahami konflik yang perlu diselesaikan","Memilih nama produk"],a:2,e:"Pengenalpastian percanggahan membantu menentukan penyelesaian yang sesuai."},
+{q:"Prinsip inventif yang bermaksud mengeluarkan bahagian yang mengganggu daripada objek ialah...",o:["Pengekstrakan","Pembahagian","Pengantara","Kualiti setempat"],a:0,e:"Pengekstrakan ialah memisahkan atau mengeluarkan bahagian yang mendatangkan gangguan."},
+{q:"Apakah maksud kaedah pembuatan pemesinan?",o:["Melebur bahan ke dalam acuan","Mencantum dua bahagian","Mengecat permukaan sahaja","Membuang bahagian bahan untuk mendapatkan bentuk dikehendaki"],a:3,e:"Pemesinan membuang sebahagian bahan bagi menghasilkan bentuk yang diperlukan."},
+{q:"Kaedah pembuatan yang melibatkan peleburan bahan dan menuangnya ke dalam acuan ialah...",o:["Pembentukan","Tuangan","Sambungan","Pemesinan"],a:1,e:"Dalam kaedah tuangan, bahan dilebur dan dituangkan ke dalam acuan."},
+{q:"Kaedah yang digunakan untuk mencantumkan beberapa bahagian menjadi satu produk ialah...",o:["Pemesinan","Pembentukan","Sambungan","Tuangan"],a:2,e:"Kaedah sambungan mencantumkan bahagian-bahagian produk."},
+{q:"Apakah fungsi utama gear dalam sistem mekanikal?",o:["Memindahkan gerakan dan kuasa antara komponen","Mengesan cahaya","Menghasilkan bunyi","Menyimpan air"],a:0,e:"Gear memindahkan gerakan dan kuasa melalui gigi gear yang saling bertaut."},
+{q:"Komponen mekanikal yang membantu mengangkat beban dengan daya lebih kecil ialah...",o:["Penderia","LED","Pembaz","Takal"],a:3,e:"Takal boleh membantu mengangkat beban dengan lebih mudah."},
+{q:"Apakah fungsi pautan dalam sistem mekanikal?",o:["Menghasilkan cahaya","Menghubungkan komponen untuk melengkapkan sistem","Mengukur suhu","Mengecas bateri"],a:1,e:"Pautan menghubungkan komponen dalam sesuatu sistem mekanikal."},
+{q:"Apakah tujuan utama reka bentuk mekanikal?",o:["Menghias ruang semata-mata","Menghasilkan warna baharu","Menghasilkan sistem yang melaksanakan fungsi mekanikal","Menyimpan maklumat digital"],a:2,e:"Reka bentuk mekanikal menggabungkan komponen untuk menghasilkan pergerakan atau fungsi tertentu."},
+{q:"Sumber tenaga yang boleh diperbaharui ialah...",o:["Arang batu","Petroleum","Gas asli","Matahari"],a:3,e:"Tenaga matahari ialah sumber tenaga boleh diperbaharui."},
+{q:"Apakah unit bagi rintangan elektrik?",o:["Ohm","Ampere","Watt","Volt"],a:0,e:"Rintangan elektrik diukur dalam ohm (Ω)."},
+{q:"Apakah unit bagi arus elektrik?",o:["Volt","Ampere","Ohm","Watt"],a:1,e:"Arus elektrik diukur dalam ampere (A)."},
+{q:"Sebuah litar mempunyai voltan 12 V dan rintangan 4 Ω. Berapakah arusnya?",o:["48 A","16 A","3 A","8 A"],a:2,e:"Mengikut hukum Ohm, I = V/R = 12/4 = 3 A."},
+{q:"Apakah formula untuk mengira kuasa elektrik?",o:["P = V × I","P = V + I","P = R/I","P = V − R"],a:0,e:"Kuasa elektrik dikira menggunakan P = V × I."},
+{q:"Apakah fungsi suis dalam litar elektrik?",o:["Menyimpan tenaga matahari","Meningkatkan saiz wayar","Mengukur jisim","Menyambung atau memutuskan litar"],a:3,e:"Suis mengawal aliran arus dengan menyambung atau memutuskan litar."},
+{q:"Apakah fungsi mikropengawal dalam reka bentuk elektronik?",o:["Menjadi bekas komponen","Mengawal operasi berdasarkan atur cara dan input","Menggantikan semua wayar","Menjadi sumber air"],a:1,e:"Mikropengawal memproses input dan mengawal output mengikut program."},
+{q:"Komponen yang menukar isyarat elektrik kepada bunyi ialah...",o:["Penderia cahaya","Suis tekan buka","Pembaz","Perintang"],a:2,e:"Pembaz menghasilkan bunyi apabila menerima isyarat elektrik yang sesuai."},
+{q:"Antara berikut, yang manakah peranti output?",o:["Penderia suhu","Penderia jarak","Suis input","Motor arus terus"],a:3,e:"Motor arus terus ialah peranti output yang menghasilkan gerakan."},
+{q:"Apakah fungsi penderia cahaya?",o:["Mengesan perubahan keamatan cahaya","Menghasilkan bunyi","Memindahkan kuasa gear","Menyimpan air"],a:0,e:"Penderia cahaya mengesan cahaya dan menghasilkan isyarat untuk sistem."},
+{q:"Apakah maksud sistem akuaponik?",o:["Sistem mengecat bahan","Gabungan akuakultur dan hidroponik","Sistem menghasilkan elektrik sahaja","Kaedah membungkus makanan"],a:1,e:"Akuaponik menggabungkan penternakan hidupan akuatik dengan penanaman tumbuhan tanpa tanah."},
+{q:"Dalam sistem akuaponik, apakah fungsi pam air?",o:["Memotong akar","Menghasilkan makanan ikan secara automatik","Mengalirkan air ke bahagian sistem","Mengukur warna daun"],a:2,e:"Pam membantu mengalirkan air antara komponen sistem akuaponik."},
+{q:"Dalam sistem akuaponik, apakah fungsi media tanaman yang sesuai?",o:["Menggantikan semua air","Menghasilkan elektrik","Menghalang pertumbuhan tumbuhan","Menyokong tanaman dan boleh membantu penapisan biologi"],a:3,e:"Media tanaman menyokong akar dan boleh menyediakan permukaan untuk bakteria bermanfaat."},
+{q:"Sistem akuaponik yang menggunakan tanaman terapung pada permukaan air dikenali sebagai...",o:["Sistem raft","Sistem pemesinan","Sistem tuangan","Sistem gear"],a:0,e:"Sistem raft menggunakan tanaman yang disokong pada pelantar terapung."},
+{q:"Apakah tujuan menilai reka bentuk sistem akuaponik?",o:["Mengelakkan sebarang pemerhatian","Menentukan kesesuaian fungsi, prestasi dan reka bentuk","Mengubah semua komponen tanpa sebab","Memilih nama yang paling panjang"],a:1,e:"Penilaian membantu menentukan sama ada sistem memenuhi kriteria yang ditetapkan."},
+{q:"Apakah yang dimaksudkan dengan reka bentuk makanan?",o:["Mengira penggunaan elektrik sahaja","Membina sistem mekanikal","Pembentukan, hiasan, ukiran dan pembungkusan makanan","Menyimpan peralatan bengkel"],a:2,e:"Reka bentuk makanan meliputi pembentukan, hiasan, ukiran dan pembungkusan."},
+{q:"Apakah tujuan utama pembungkusan makanan?",o:["Menjadikan makanan lebih berat","Menghapuskan keperluan label","Menambah kos tanpa sebab","Melindungi makanan dan membantu mengekalkan kualitinya"],a:3,e:"Pembungkusan membantu melindungi makanan, mengekalkan kualiti dan memudahkan pengendalian."},
+{q:"Apakah yang patut dipertimbangkan ketika memilih pembungkusan makanan?",o:["Keselamatan makanan, bahan, saiz dan sasaran pengguna","Warna kegemaran pereka sahaja","Saiz kotak yang paling besar sahaja","Harga tanpa mengambil kira fungsi"],a:0,e:"Pembungkusan perlu sesuai dengan produk, pengguna, keselamatan dan kos."},
+{q:"Apakah kepentingan label pada pembungkusan makanan?",o:["Menggantikan bekas makanan","Memberikan maklumat penting tentang produk","Menjadikan produk sukar dikenal pasti","Menghalang pengguna membaca maklumat"],a:1,e:"Label boleh menyampaikan nama produk, ramuan dan maklumat berkaitan yang diperlukan."},
+{q:"Seorang murid mahu menghasilkan pembungkusan kek lapis untuk dijual. Apakah pilihan yang paling wajar?",o:["Bahan mudah koyak dan tidak bersih","Bekas terlalu kecil hingga merosakkan kek","Pembungkusan bersih, sesuai saiz dan melindungi kek","Bekas terbuka tanpa perlindungan"],a:2,e:"Pembungkusan perlu bersih, sesuai dengan saiz produk dan melindungi kek semasa pengangkutan."}
+];
+let order=questions.map((_,i)=>i), answers={};
+const letters=["A","B","C","D"];
+function render(){
+ const host=document.getElementById("quiz");
+ host.innerHTML="";
+ order.forEach((idx,pos)=>{
+  const q=questions[idx], chosen=answers[idx];
+  const card=document.createElement("section");
+  card.className="question";
+  const title=document.createElement("h2");
+  title.textContent=(pos+1)+". "+q.q;
+  const num=document.createElement("div");
+  num.className="qnum";num.textContent="SOALAN "+(pos+1);
+  card.append(num,title);
+  q.o.forEach((opt,j)=>{
+   const lab=document.createElement("label");
+   lab.className="option";
+   if(chosen!==undefined && j===q.a)lab.classList.add("correct");
+   if(chosen===j && chosen!==q.a)lab.classList.add("wrong");
+   const input=document.createElement("input");
+   input.type="radio";input.name="q"+idx;input.checked=chosen===j;
+   input.addEventListener("change",()=>{answers[idx]=j;render();});
+   lab.append(input,document.createTextNode(letters[j]+". "+opt));
+   card.append(lab);
+  });
+  if(chosen!==undefined){
+   const fb=document.createElement("div");
+   fb.className="feedback "+(chosen===q.a?"good":"bad");
+   fb.textContent=(chosen===q.a?"Betul! ":"Belum tepat. Jawapan: "+letters[q.a]+". ")+q.e;
+   card.append(fb);
+  }
+  host.append(card);
+ });
+ update();
+ document.getElementById("result").style.display="none";
+}
+function update(){
+ const n=Object.keys(answers).length;
+ const correct=Object.keys(answers).filter(k=>answers[k]===questions[k].a).length;
+ document.getElementById("score").textContent="Skor: "+correct+"/30";
+ document.getElementById("progressText").textContent=n+" daripada 30 dijawab";
+ document.getElementById("percent").textContent=Math.round(n/30*100)+"%";
+ document.getElementById("bar").style.width=n/30*100+"%";
+}
+function showResult(){
+ const n=Object.keys(answers).length;
+ const correct=Object.keys(answers).filter(k=>answers[k]===questions[k].a).length;
+ document.getElementById("result").style.display="block";
+ document.getElementById("finalScore").textContent=correct+"/30";
+ document.getElementById("message").textContent=
+ n<30?"Anda telah menjawab "+n+" daripada 30 soalan. Anda boleh menjawab soalan yang belum selesai.":
+ correct>=25?"Cemerlang! Teruskan usaha!":
+ correct>=18?"Bagus! Semak jawapan yang salah dan cuba lagi.":
+ "Teruskan berlatih. Baca penerangan dan cuba sekali lagi.";
+ const review=document.getElementById("review");
+ review.innerHTML="<h2>Semakan jawapan</h2>";
+ questions.forEach((q,i)=>{
+  if(answers[i]===undefined||answers[i]!==q.a){
+   const div=document.createElement("div");div.className="reviewitem";
+   const strong=document.createElement("strong");
+   strong.textContent=(i+1)+". "+q.q;
+   const p=document.createElement("p");
+   p.textContent="Jawapan: "+letters[q.a]+". "+q.o[q.a];
+   const small=document.createElement("small");small.textContent=q.e;
+   div.append(strong,p,small);review.append(div);
+  }
+ });
+ document.getElementById("result").scrollIntoView({behavior:"smooth"});
+}
+function resetQuiz(random){
+ answers={};
+ order=questions.map((_,i)=>i);
+ if(random)order.sort(()=>Math.random()-.5);
+ render();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+render();
+</script>
+</body>
+</html>
